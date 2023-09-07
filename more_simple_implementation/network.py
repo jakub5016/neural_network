@@ -1,28 +1,38 @@
 from random import random
 import numpy as np 
-network_size = [2,1,5]  
+import pandas as pd
+import json
 
-neurons = []
-weights = []
-biases = []
+class Network():
+    def __init__(self, network_size):
+        self.network_size = network_size
 
-for index, item in enumerate(network_size):
-    neurons.append(np.array([0] * item))
+        self.neurons = []
+        self.weights = []
+        self.biases = []
 
-    if index > 0:
-        weights.append(np.array([[random()]*item] * network_size[index-1]))
-        biases.append(np.array([[random()]*item] * network_size[index-1]))
-    else:
-        weights.append([])
-        biases.append([])
 
-print("NEURONS:", neurons, "\n")
-print("WEIGHTS:", weights, "\n")
+    def mount(self):
+        for index, item in enumerate(self.network_size):
+            self.neurons.append(np.array([0] * item))
 
-# What we want to multiply 
+            if index > 0:
+                self.weights.append(np.array([[random()]*item] * self.network_size[index-1]))
+                self.biases.append(np.array([[random()]*item] * self.network_size[index-1]))
+            else:
+                self.weights.append(np.array([]))
+                self.biases.append([])
 
-for index, item in enumerate(neurons):
-    if index > 0:
-        item = np.matmul(neurons[index-1], weights[index])
+        for index, item in enumerate(self.neurons):
+            if index > 0:
+                item = np.matmul(self.neurons[index-1], self.weights[index])
 
-# print(np.matmul(np.array([0, 0, 0, 0]), weights[1]))
+    def save(self):
+        weights_as_lists = [weight.tolist() for weight in self.weights]
+
+        with open('weights.json', 'w') as f:
+            json.dump(weights_as_lists, f)
+
+
+network = Network(network_size=[2,2,3])
+network.mount()
