@@ -56,8 +56,9 @@ class Network():
                 for elem_index in range(len(self.neurons[layer_index])):
                     for i in self.biases[layer_index]:
                         self.neurons[layer_index][elem_index] += i[elem_index]
+                        self.neurons[layer_index][elem_index] = np.tanh(self.neurons[layer_index][elem_index])
                 
-                print(f"Layer number: {layer_index}, {self.neurons[layer_index]}, after bias")
+                print(f"Layer number: {layer_index}, {self.neurons[layer_index]}, after bias and tanh")
 
         return self.neurons[-1]
 
