@@ -47,22 +47,21 @@ class Network():
             print("Wrong input size")
             return -1
         
-        for index, layer in enumerate(self.neurons):
-            if index > 0:
-                layer = np.matmul(self.neurons[index-1], self.weights[index])
 
-                print(layer)
+        for layer_index in range(len(self.neurons)):
+            if layer_index > 0:
+                self.neurons[layer_index] = np.matmul(self.neurons[layer_index-1], self.weights[layer_index])
+                print(f"Layer number: {layer_index}, {self.neurons[layer_index]}, after matmul")
+
+                for elem_index in range(len(self.neurons[layer_index])):
+                    for i in self.biases[layer_index]:
+                        self.neurons[layer_index][elem_index] += i[elem_index]
                 
-                for elem_index, element in enumerate(layer):
-                    for bias_list in self.biases[index]:
-                        element = element + bias_list[elem_index]
+                print(f"Layer number: {layer_index}, {self.neurons[layer_index]}, after bias")
 
-
-                    element = np.tanh(element)
-
-
+        return self.neurons[-1]
 
 if __name__ == "__main__":
-    network = Network(network_size=[2,2,3])
+    network = Network(network_size=[2,2,2])
     network.mount()
-    network.evaluate([2,2])
+    print(network.evaluate([1,1]))
