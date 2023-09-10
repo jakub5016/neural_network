@@ -64,20 +64,28 @@ class Network():
                 
         return self.neurons[-1]
     
-    def back_propagation(self, answer):
+    def back_propagation(self, answer, learing_rate =0.1):
         if len(answer) == len(self.neurons[-1]):
             cost = np.square(answer - self.neurons[-1])
             print(f"Cost: {cost} \n")
 
             for index_L in range(len(self.neurons[-1])):
+                bias_gradient = 0
                 for index_L_1 in range(len(self.neurons[-2])):
+                    
                     weight_gradient = 2*self.neurons[-2][index_L_1] * np.tan(self.neurons[-1][index_L]) * (self.neurons[-1][index_L] - answer[index_L])
-                    print(f"Weight gradient for neurons: {index_L} in last layer, {index_L_1} in pervous layer ::: {weight_gradient}")
-                    bias_gradient = weight_gradient/self.neurons[-2][index_L_1] 
-                    print(f"Bias gradient ::: {bias_gradient}, devided by: {self.neurons[-2][index_L_1] }")
+                    # print(f"Weight gradient for neurons: {index_L} in last layer, {index_L_1} in pervous layer ::: {weight_gradient}")
+                    # print(f"Current weight: {self.weights[-1][index_L_1][index_L]}")
+                    self.weights[-1][index_L_1][index_L] -= learing_rate * weight_gradient
+
+                    bias_gradient += weight_gradient/self.neurons[-2][index_L_1] 
+                    # print(f"Bias gradient ::: {bias_gradient}, devided by: {self.neurons[-2][index_L_1] }")
+
+                self.biases[-1][index_L] -= learing_rate * bias_gradient
 
 if __name__ == "__main__":
     network = Network(network_size=[2,2])
     network.mount()
-    print(f"For [1,1] input: {network.evaluate([1,2])} \n")
+    print(f"For [1,1] input: {network.evaluate([3,4])} \n")
     network.back_propagation(np.array([1, 0]))
+    network.print_network_status()
