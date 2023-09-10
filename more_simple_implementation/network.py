@@ -51,18 +51,25 @@ class Network():
         for layer_index in range(len(self.neurons)):
             if layer_index > 0:
                 self.neurons[layer_index] = np.matmul(self.neurons[layer_index-1], self.weights[layer_index])
-                print(f"Layer number: {layer_index}, {self.neurons[layer_index]}, after matmul")
-
                 for elem_index in range(len(self.neurons[layer_index])):
                     for i in self.biases[layer_index]:
                         self.neurons[layer_index][elem_index] += i[elem_index]
                         self.neurons[layer_index][elem_index] = np.tanh(self.neurons[layer_index][elem_index])
                 
-                print(f"Layer number: {layer_index}, {self.neurons[layer_index]}, after bias and tanh")
-
         return self.neurons[-1]
+    
+    def back_propagation(self, answer):
+        if len(answer) == len(self.neurons[-1]):
+            cost = np.square(answer - self.neurons[-1])
+            print(f"Cost: {cost}")
+
+            for index_L in range(len(self.neurons[-1])):
+                for index_L_1 in range(len(self.neurons[-2])):
+                    weight_gradient = 2*self.neurons[-2][index_L_1] * np.tan(self.neurons[-1][index_L]) * (self.neurons[-1][index_L] - answer[index_L])
+                    print(f"Weight gradient for neurons: {index_L} in last layer, {index_L_1} in pervous layer ::: {weight_gradient}")
 
 if __name__ == "__main__":
-    network = Network(network_size=[2,2,2])
+    network = Network(network_size=[2,2])
     network.mount()
-    print(network.evaluate([1,1]))
+    print(f"For [1,1] input: {network.evaluate([1,2])}")
+    network.back_propagation(np.array([1, 0]))
