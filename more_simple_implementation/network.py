@@ -1,6 +1,8 @@
 from random import random
 import numpy as np 
 import json
+import matplotlib.pyplot as plt
+
 
 class Network():
     def __init__(self, network_size):
@@ -10,6 +12,8 @@ class Network():
         self.weights = []
         self.biases = []
 
+        self.cost_polt = []
+
 
     def mount(self):
         for index, item in enumerate(self.network_size):
@@ -17,7 +21,7 @@ class Network():
 
             if index > 0:
                 self.weights.append(np.array([[random()]*item] * self.network_size[index-1]))
-                self.biases.append(np.array([1] * item))
+                self.biases.append(np.array([1] * item, dtype=np.float64))
             else:
                 self.weights.append(np.array([]))
                 self.biases.append(np.array([]))
@@ -68,6 +72,7 @@ class Network():
         if len(answer) == len(self.neurons[-1]):
             cost = np.square(answer - self.neurons[-1])
             print(f"Cost: {cost} \n")
+            self.cost_polt.append(np.sum(cost))
 
             for current_layer in range(len(self.network_size) -1):
                 for index_L in range(len(self.neurons[-1 - current_layer])):
@@ -82,12 +87,33 @@ class Network():
                         bias_gradient += weight_gradient/self.neurons[-2 - current_layer][index_L_1] 
                         # print(f"Bias gradient ::: {bias_gradient}, devided by: {self.neurons[-2][index_L_1] }")
 
-                    self.biases[-1 - current_layer][index_L] -= learing_rate * bias_gradient
-
-
+                    self.biases[-1 - current_layer][index_L] -= float(learing_rate * bias_gradient)
+    
+    def train(self, in_out, n_eval =1):
+        # in_out should be a table with inputs and corresponding outputs
+        for i in range(n_eval):
+            for example in in_out:
+                print("Evaluating example:",example)
+                self.evaluate(example[0])
+                self.back_propagation(example[1])
+            np.random.shuffle(in_out)
+    
 if __name__ == "__main__":
-    network = Network(network_size=[2, 2, 2])
+    # network = Network(network_size=[2, 2, 2])
+    # network.mount()
+    # print(f"For input: {network.evaluate([3,4])} \n")
+    # network.back_propagation(np.array([1, 0]))
+    # network.print_network_status()
+    
+    network = Network(network_size=[2, 1])
     network.mount()
-    print(f"For [1,1] input: {network.evaluate([3,4])} \n")
-    network.back_propagation(np.array([1, 0]))
-    network.print_network_status()
+    # AND expample
+    network.train([
+        [[1, 1], [1]], 
+        [[1, 0.1], [0]],
+        [[0.1, 1], [0]],
+        [[0.1, 0.1], [0]]
+        ], n_eval = 10)
+    
+    print(network.evaluate([1,1]))
+    print(network.evaluate([1,0]))
