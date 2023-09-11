@@ -89,15 +89,22 @@ class Network():
 
                     self.biases[-1 - current_layer][index_L] -= float(learing_rate * bias_gradient)
     
-    def train(self, in_out, n_eval =1):
+    def train(self, in_out, learning_rate=0.1, n_eval =1):
         # in_out should be a table with inputs and corresponding outputs
         for i in range(n_eval):
             for example in in_out:
                 print("Evaluating example:",example)
                 self.evaluate(example[0])
-                self.back_propagation(example[1])
+                self.back_propagation(example[1], learning_rate)
             np.random.shuffle(in_out)
     
+    def plot_cost(self):
+        fig, ax = plt.subplots()
+
+        ax.plot(self.cost_polt, linewidth=2.0)
+
+        plt.show()
+
 if __name__ == "__main__":
     # network = Network(network_size=[2, 2, 2])
     # network.mount()
@@ -113,7 +120,9 @@ if __name__ == "__main__":
         [[1, 0.1], [0]],
         [[0.1, 1], [0]],
         [[0.1, 0.1], [0]]
-        ], n_eval = 10)
+        ], n_eval = 2000, learning_rate = 0.001)
     
     print(network.evaluate([1,1]))
-    print(network.evaluate([1,0]))
+    print(network.evaluate([1,0.1]))
+
+    network.plot_cost()
