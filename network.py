@@ -6,7 +6,7 @@ import time
 
 
 class Network():
-    def __init__(self, network_size):
+    def __init__(self, network_size, output_act_func="tanh"):
         self.network_size = network_size
 
         self.neurons = []
@@ -15,6 +15,7 @@ class Network():
 
         self.cost_polt = []
 
+        self.output_act_func = output_act_func
 
     def mount(self):
         for index, item in enumerate(self.network_size):
@@ -62,11 +63,12 @@ class Network():
                     self.neurons[layer_index][elem_index] += self.biases[layer_index][elem_index]
                     
                     # Use softmax on last index
-                    # if layer_index ==(len(self.neurons) -1):
-                    #     self.neurons[layer_index][elem_index] = np.exp(self.neurons[layer_index][elem_index])/ np.sum(np.exp(self.neurons[layer_index][elem_index]), dtype=np.float64)
-                    # else:
-                    self.neurons[layer_index][elem_index] = np.tanh(self.neurons[layer_index][elem_index])
+                    if layer_index ==(len(self.neurons) -1) and self.output_act_func != "tanh":
+                        self.neurons[layer_index][elem_index] = np.exp(self.neurons[layer_index][elem_index]) / np.sum(np.exp(self.neurons[layer_index]), dtype=np.float64)
+                    else:
+                        self.neurons[layer_index][elem_index] = np.tanh(self.neurons[layer_index][elem_index])
                 
+            self.print_network_status()
         return self.neurons[-1]
     
     def back_propagation(self, answer, learing_rate =0.1):
@@ -77,9 +79,19 @@ class Network():
             deltas = [None] * len(self.network_size)
 
             # Calculate the delta for the output layer
-            output_layer = len(self.network_size) - 1
-            deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
-            # deltas = cost_function'(a) * activation_function'(a) 
+            if self.output_act_func == "tanh":
+                output_layer = len(self.network_size) - 1
+                deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
+                # deltas = cost_function'(a) * activation_function'(a) 
+
+            else:
+                # Softmax version
+                output_layer = len(self.network_size) - 1
+                softmax_output = np.exp(self.neurons[output_layer])
+                softmax_output /= np.sum(softmax_output)
+                deltas[output_layer] = softmax_output - answer
+                print("A")
+
 
             # Backpropagate the deltas to hidden layers
             for layer in range(output_layer - 1, 0, -1):
@@ -113,7 +125,7 @@ class Network():
 if __name__ == "__main__":
     # network = Network(network_size=[2, 2, 2])
     # network.mount()
-    # print(f"For input: {network.evaluate([3,4])} \n")
+    # print(f"For input [3,4]: {network.evaluate([3,4])} \n")
     # network.back_propagation(np.array([1, 0]))
     # network.print_network_status()
     
