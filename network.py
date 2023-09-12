@@ -2,6 +2,7 @@ from random import random
 import numpy as np 
 import json
 import matplotlib.pyplot as plt
+import time
 
 
 class Network():
@@ -20,8 +21,8 @@ class Network():
             self.neurons.append(np.array([0] * item))
 
             if index > 0:
-                self.weights.append(np.array([[random()]*item] * self.network_size[index-1]))
-                self.biases.append(np.array([1] * item, dtype=np.float64))
+                self.weights.append(np.random.normal(size=(self.network_size[index-1], item)))
+                self.biases.append(np.array([0] * item, dtype=np.float64))
             else:
                 self.weights.append(np.array([]))
                 self.biases.append(np.array([]))
@@ -69,25 +70,29 @@ class Network():
         return self.neurons[-1]
     
     def back_propagation(self, answer, learing_rate =0.1):
-        if len(answer) == len(self.neurons[-1]):
-            cost = np.square(answer - self.neurons[-1])
-            print(f"Cost: {cost} \n")
-            self.cost_polt.append(np.sum(cost))
+            if len(answer) != len(self.neurons[-1]):
+                print("Error: Output size does not match network output size.")
+                return
 
-            for current_layer in range(len(self.network_size) -1):
-                for index_L in range(len(self.neurons[-1 - current_layer])):
-                    bias_gradient = 0
-                    for index_L_1 in range(len(self.neurons[-2 - current_layer])):
-                        
-                        weight_gradient = 2*self.neurons[-2 - current_layer][index_L_1] * np.tan(self.neurons[-1 - current_layer][index_L]) * (self.neurons[-1][index_L] - answer[index_L])
-                        # print(f"Weight gradient for neurons: {index_L} in last layer, {index_L_1} in pervous layer ::: {weight_gradient}")
-                        # print(f"Current weight: {self.weights[-1][index_L_1][index_L]}")
-                        self.weights[-1 - current_layer][index_L_1][index_L] -= learing_rate * weight_gradient
+            deltas = [None] * len(self.network_size)
 
-                        bias_gradient += weight_gradient/self.neurons[-2 - current_layer][index_L_1] 
-                        # print(f"Bias gradient ::: {bias_gradient}, devided by: {self.neurons[-2][index_L_1] }")
+            # Calculate the delta for the output layer
+            output_layer = len(self.network_size) - 1
+            deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
+            # deltas = cost_function'(a) * activation_function'(a) 
 
-                    self.biases[-1 - current_layer][index_L] -= float(learing_rate * bias_gradient)
+            # Backpropagate the deltas to hidden layers
+            for layer in range(output_layer - 1, 0, -1):
+                deltas[layer] = np.dot(deltas[layer + 1], self.weights[layer + 1].T) * (1 - np.tanh(self.neurons[layer]) ** 2)
+                
+
+            # Update weights and biases
+            for layer in range(1, len(self.network_size)):
+                self.biases[layer] -= learing_rate * np.sum(deltas[layer], axis=0)
+                self.weights[layer] -= learing_rate * np.outer(self.neurons[layer - 1], deltas[layer])
+
+            cost = np.sum((answer - self.neurons[-1]) ** 2)
+            self.cost_polt.append(cost)
     
     def train(self, in_out, learning_rate=0.1, n_eval =1):
         # in_out should be a table with inputs and corresponding outputs
@@ -117,12 +122,12 @@ if __name__ == "__main__":
     # AND expample
     network.train([
         [[1, 1], [1]], 
-        [[1, 0.1], [0]],
-        [[0.1, 1], [0]],
-        [[0.1, 0.1], [0]]
-        ], n_eval = 25, learning_rate = 0.1)
+        [[1, 0], [0]],
+        [[0, 1], [0]],
+        [[0, 0], [0]]
+        ], n_eval = 1000, learning_rate = 0.01)
     
     print(network.evaluate([1,1]))
-    print(network.evaluate([1,0.1]))
+    print(network.evaluate([1,0]))
 
     network.plot_cost()
