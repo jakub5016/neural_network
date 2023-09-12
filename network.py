@@ -120,7 +120,7 @@ if __name__ == "__main__":
         [[1, 0.1], [0]],
         [[0.1, 1], [0]],
         [[0.1, 0.1], [0]]
-        ], n_eval = 2000, learning_rate = 0.001)
+        ], n_eval = 25, learning_rate = 0.1)
     
     print(network.evaluate([1,1]))
     print(network.evaluate([1,0.1]))
