@@ -18,6 +18,9 @@ class Network():
         self.output_act_func = output_act_func
 
     def mount(self):
+        """
+        Sets random weights and biases for whole neural network.
+        """
         for index, item in enumerate(self.network_size):
             self.neurons.append(np.array([0] * item))
 
@@ -41,13 +44,21 @@ class Network():
         print("BIASES:", self.biases, "\n")
 
     def save(self):
+        """
+        Saves weights in JSON file
+        """
         weights_as_lists = [weight.tolist() for weight in self.weights]
 
         with open('weights.json', 'w') as f:
             json.dump(weights_as_lists, f)
 
     def evaluate(self, input):
+        """
+        Goes throughout forward-popagating proces including input for neural network
 
+        :param input: Input for neural network, should be the same size as first layer of network 
+        :return: Output layer 
+        """
         if len(input) == len(self.neurons[0]):
             self.neurons[0] = input 
 
@@ -63,48 +74,57 @@ class Network():
                     self.neurons[layer_index][elem_index] += self.biases[layer_index][elem_index]
                     
                     # Use softmax on last index
-                    if layer_index ==(len(self.neurons) -1) and self.output_act_func != "tanh":
-                        self.neurons[layer_index][elem_index] = np.exp(self.neurons[layer_index][elem_index]) / np.sum(np.exp(self.neurons[layer_index]), dtype=np.float64)
-                    else:
-                        self.neurons[layer_index][elem_index] = np.tanh(self.neurons[layer_index][elem_index])
+
+                if layer_index ==(len(self.neurons) -1) and self.output_act_func != "tanh":
+                    self.neurons[layer_index] = np.exp(self.neurons[layer_index]) / np.sum(np.exp(self.neurons[layer_index]), dtype=np.float64)
+                else:
+                    self.neurons[layer_index] = np.tanh(self.neurons[layer_index])
                 
-            self.print_network_status()
         return self.neurons[-1]
     
     def back_propagation(self, answer, learing_rate =0.1):
-            if len(answer) != len(self.neurons[-1]):
-                print("Error: Output size does not match network output size.")
-                return
+        """
+        Goes throughout back-popagation proces including.
+        It's only one interation in witch network is corrected in relation to answer.
+        This method should be use only after "evaluate"
 
-            deltas = [None] * len(self.network_size)
+        :param answer: Answer as np array for the pervous evaluation
+        :param learing_rate: Should be between 0-1
+        """
 
-            # Calculate the delta for the output layer
-            if self.output_act_func == "tanh":
-                output_layer = len(self.network_size) - 1
-                deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
-                # deltas = cost_function'(a) * activation_function'(a) 
+        if len(answer) != len(self.neurons[-1]):
+            print("Error: Output size does not match network output size.")
+            return
 
-            else:
-                # Softmax version
-                output_layer = len(self.network_size) - 1
-                softmax_output = np.exp(self.neurons[output_layer])
-                softmax_output /= np.sum(softmax_output)
-                deltas[output_layer] = softmax_output - answer
-                print("A")
+        deltas = [None] * len(self.network_size)
+
+        # Calculate the delta for the output layer
+        if self.output_act_func == "tanh":
+            output_layer = len(self.network_size) - 1
+            deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
+            # deltas = cost_function'(a) * activation_function'(a) 
+
+        else:
+            # Softmax version
+            output_layer = len(self.network_size) - 1
+            softmax_output = np.exp(self.neurons[output_layer])
+            softmax_output /= np.sum(softmax_output)
+            deltas[output_layer] = softmax_output - answer
+            print("A")
 
 
-            # Backpropagate the deltas to hidden layers
-            for layer in range(output_layer - 1, 0, -1):
-                deltas[layer] = np.dot(deltas[layer + 1], self.weights[layer + 1].T) * (1 - np.tanh(self.neurons[layer]) ** 2)
-                
+        # Backpropagate the deltas to hidden layers
+        for layer in range(output_layer - 1, 0, -1):
+            deltas[layer] = np.dot(deltas[layer + 1], self.weights[layer + 1].T) * (1 - np.tanh(self.neurons[layer]) ** 2)
+            
 
-            # Update weights and biases
-            for layer in range(1, len(self.network_size)):
-                self.biases[layer] -= learing_rate * np.sum(deltas[layer], axis=0)
-                self.weights[layer] -= learing_rate * np.outer(self.neurons[layer - 1], deltas[layer])
+        # Update weights and biases
+        for layer in range(1, len(self.network_size)):
+            self.biases[layer] -= learing_rate * np.sum(deltas[layer], axis=0)
+            self.weights[layer] -= learing_rate * np.outer(self.neurons[layer - 1], deltas[layer])
 
-            cost = np.sum((answer - self.neurons[-1]) ** 2)
-            self.cost_polt.append(cost)
+        cost = np.sum((answer - self.neurons[-1]) ** 2)
+        self.cost_polt.append(cost)
     
     def train(self, in_out, learning_rate=0.1, n_eval =1):
         # in_out should be a table with inputs and corresponding outputs
@@ -137,9 +157,11 @@ if __name__ == "__main__":
         [[1, 0], [0]],
         [[0, 1], [0]],
         [[0, 0], [0]]
-        ], n_eval = 1000, learning_rate = 0.01)
+        ], n_eval = 200000, learning_rate = 0.00001)
     
     print(network.evaluate([1,1]))
     print(network.evaluate([1,0]))
 
     network.plot_cost()
+
+    network.save()
