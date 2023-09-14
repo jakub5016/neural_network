@@ -73,8 +73,7 @@ class Network():
                 for elem_index in range(len(self.neurons[layer_index])):
                     self.neurons[layer_index][elem_index] += self.biases[layer_index][elem_index]
                     
-                    # Use softmax on last index
-
+                
                 if layer_index ==(len(self.neurons) -1) and self.output_act_func != "tanh":
                     self.neurons[layer_index] = np.exp(self.neurons[layer_index]) / np.sum(np.exp(self.neurons[layer_index]), dtype=np.float64)
                 else:
@@ -91,22 +90,22 @@ class Network():
         :param answer: Answer as np array for the pervous evaluation
         :param learing_rate: Should be between 0-1
         """
-
+        
         if len(answer) != len(self.neurons[-1]):
             print("Error: Output size does not match network output size.")
             return
 
         deltas = [None] * len(self.network_size)
 
+        output_layer = len(self.network_size) - 1
+
         # Calculate the delta for the output layer
         if self.output_act_func == "tanh":
-            output_layer = len(self.network_size) - 1
             deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
             # deltas = cost_function'(a) * activation_function'(a) 
 
         else:
             # Softmax version
-            output_layer = len(self.network_size) - 1
             softmax_output = np.exp(self.neurons[output_layer])
             softmax_output /= np.sum(softmax_output)
             deltas[output_layer] = softmax_output - answer
@@ -127,6 +126,17 @@ class Network():
         self.cost_polt.append(cost)
     
     def train(self, in_out, learning_rate=0.1, n_eval =1):
+        """
+        Traing fuction, trigerss both evaluate and back_propagation function with given in_out list.
+        It also suffles the data after every itereation over all of the list.
+
+        :param in_out: List with input and answers. 
+            Your table for neural network with 2 input neurons and 2 output neurons, with two examples should look like this: 
+            [[[1,1], [2,2]], [[2,2], [1,1]]]. You have to make list even when output is one neuron such as: [[[1,1] , [0]]] --> one example in list
+        :param learing_rate: Used in back_propagation, check this method.
+        :param n_eval: How many times this table should be run during the training. 
+            If you want to know how many iterations it will be you should multiply number of examples in in_out table and n_eval.
+        """
         # in_out should be a table with inputs and corresponding outputs
         for i in range(n_eval):
             for example in in_out:
@@ -149,19 +159,8 @@ if __name__ == "__main__":
     # network.back_propagation(np.array([1, 0]))
     # network.print_network_status()
     
-    network = Network(network_size=[2, 1])
+    network = Network(network_size=[2,2, 2])
     network.mount()
-    # AND expample
-    network.train([
-        [[1, 1], [1]], 
-        [[1, 0], [0]],
-        [[0, 1], [0]],
-        [[0, 0], [0]]
-        ], n_eval = 200000, learning_rate = 0.00001)
-    
-    print(network.evaluate([1,1]))
-    print(network.evaluate([1,0]))
 
-    network.plot_cost()
-
-    network.save()
+    for layer in range(len(network.network_size) - 1 - 1, 0, -1):
+        print(layer)
