@@ -22,14 +22,14 @@ class Network():
         Sets random weights and biases for whole neural network.
         """
         for index, item in enumerate(self.network_size):
-            self.neurons.append(np.array([0] * item))
+            self.neurons.append(np.zeros(item))
 
             if index > 0:
                 self.weights.append(np.random.normal(size=(self.network_size[index-1], item)))
-                self.biases.append(np.array([0] * item, dtype=np.float64))
+                self.biases.append(np.zeros(item))
             else:
-                self.weights.append(np.array([]))
-                self.biases.append(np.array([]))
+                self.weights.append(None)
+                self.biases.append(None)
 
         for index, item in enumerate(self.neurons):
             if index > 0:
@@ -159,8 +159,12 @@ if __name__ == "__main__":
     # network.back_propagation(np.array([1, 0]))
     # network.print_network_status()
     
-    network = Network(network_size=[2,2, 2])
+    network = Network(network_size=[2,1])
     network.mount()
+    network.weights[1][1] = 0
+    print("Evaluated val for [1,0]")
+    print(network.evaluate(np.array([1,0])))
+    network.print_network_status()
 
-    for layer in range(len(network.network_size) - 1 - 1, 0, -1):
-        print(layer)
+    # for layer in range(len(network.network_size) - 1 - 1, 0, -1):
+    #     print(layer)
