@@ -1,6 +1,5 @@
 from random import random
 import numpy as np 
-import json
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -44,15 +43,6 @@ class Network():
         print("WEIGHTS: ", self.weights)
         print("BIASES:", self.biases, "\n")
 
-    def save(self):
-        """
-        Saves weights in JSON file
-        """
-        weights_as_lists = [weight.tolist() for weight in self.weights]
-
-        with open('weights.json', 'w') as f:
-            json.dump(weights_as_lists, f)
-
     def evaluate(self, input):
         """
         Goes throughout forward-popagating proces including input for neural network
@@ -69,19 +59,18 @@ class Network():
         
 
         for layer_index in range(len(self.neurons)):
-            if layer_index > 0:
-                self.neurons[layer_index] = np.matmul(self.neurons[layer_index-1], self.weights[layer_index])
-                for elem_index in range(len(self.neurons[layer_index])):
+            if layer_index > 0: # Starting layer don't have any val before 
+                self.neurons[layer_index] = np.matmul(self.neurons[layer_index-1], self.weights[layer_index]) # Multiply
+                
+                for elem_index in range(len(self.neurons[layer_index])): #Add biases
                     self.neurons[layer_index][elem_index] += self.biases[layer_index][elem_index]
                     
-                
-                if layer_index ==(len(self.neurons) -1) and self.output_act_func != "tanh":
-                    self.neurons[layer_index] = np.exp(self.neurons[layer_index]) / np.sum(np.exp(self.neurons[layer_index]), dtype=np.float64)
+                if layer_index !=(len(self.neurons) -1):
+                    self.neurons[layer_index] =  self.neurons[layer_index] * (self.neurons[layer_index] > 0)  # ReLU activation
                 else:
-                    self.neurons[layer_index] = np.tanh(self.neurons[layer_index])
+                    self.neurons[layer_index] = np.tanh(self.neurons[layer_index]) #Tanh activation
                 
         return self.neurons[-1]
-    
     def back_propagation(self, answer, learing_rate =0.1):
         """
         Goes throughout back-popagation proces including.
@@ -101,16 +90,8 @@ class Network():
         output_layer = len(self.network_size) - 1
 
         # Calculate the delta for the output layer
-        if self.output_act_func == "tanh":
-            deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * (1 - np.tanh(self.neurons[output_layer]) ** 2)
+        deltas[output_layer] = 2 * (self.neurons[output_layer] - answer) * ((1/np.cosh(network.neurons[-1]))**2)
             # deltas = cost_function'(a) * activation_function'(a) 
-
-        else:
-            # Softmax version
-            softmax_output = np.exp(self.neurons[output_layer])
-            softmax_output /= np.sum(softmax_output)
-            deltas[output_layer] = softmax_output - answer
-            print("A")
 
 
         # Backpropagate the deltas to hidden layers
@@ -125,33 +106,6 @@ class Network():
 
         cost = np.sum((answer - self.neurons[-1]) ** 2)
         self.cost_polt.append(cost)
-    
-    def train(self, in_out, learning_rate=0.1, n_eval =1):
-        """
-        Traing fuction, trigerss both evaluate and back_propagation function with given in_out list.
-        It also suffles the data after every itereation over all of the list.
-
-        :param in_out: List with input and answers. 
-            Your table for neural network with 2 input neurons and 2 output neurons, with two examples should look like this: 
-            [[[1,1], [2,2]], [[2,2], [1,1]]]. You have to make list even when output is one neuron such as: [[[1,1] , [0]]] --> one example in list
-        :param learing_rate: Used in back_propagation, check this method.
-        :param n_eval: How many times this table should be run during the training. 
-            If you want to know how many iterations it will be you should multiply number of examples in in_out table and n_eval.
-        """
-        # in_out should be a table with inputs and corresponding outputs
-        for i in range(n_eval):
-            for example in in_out:
-                print("Evaluating example:",example)
-                self.evaluate(example[0])
-                self.back_propagation(example[1], learning_rate)
-            np.random.shuffle(in_out)
-    
-    def plot_cost(self):
-        fig, ax = plt.subplots()
-
-        ax.plot(self.cost_polt, linewidth=2.0)
-
-        plt.show()
 
 if __name__ == "__main__":
     # network = Network(network_size=[2, 2, 2])
@@ -160,20 +114,21 @@ if __name__ == "__main__":
     # network.back_propagation(np.array([1, 0]))
     # network.print_network_status()
     
-    network = Network(network_size=[2,2,1])
+    network = Network(network_size=[2,1])
     network.mount()
+
+    print("OUTPUT: ",network.evaluate([1,0]))
+    network.print_network_status()
     # XOR
-    data = [[[1,0], [0]], [[0,1], [0]], [[0,0], [0]], [[1,1], [1]]]
-    network.train(data, n_eval=100)
+    # data = [[[1,0], [0]], [[0,1], [0]], [[0,0], [0]], [[1,1], [1]]]
+    # network.train(data, n_eval=100)
     
-    print("EXAMPLE for [1,0]",network.evaluate([1,0]))
+    # print("EXAMPLE for [1,0]",network.evaluate([1,0]))
 
-    print("EXAMPLE for [0,1]",network.evaluate([0,1]))
+    # print("EXAMPLE for [0,1]",network.evaluate([0,1]))
 
-    print("EXAMPLE for [0,0]",network.evaluate([0,0]))
+    # print("EXAMPLE for [0,0]",network.evaluate([0,0]))
 
-    print("EXAMPLE for [1,1]",network.evaluate([1,1]))
+    # print("EXAMPLE for [1,1]",network.evaluate([1,1]))
 
-    network.plot_cost()
-    # for layer in range(len(network.network_size) - 1 - 1, 0, -1):
-    #     print(layer)
+    # network.plot_cost()
